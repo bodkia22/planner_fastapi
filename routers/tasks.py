@@ -3,14 +3,22 @@ from schemas.task import Task, TaskCreate, TaskUpdate
 from models.task import Task as TaskModel
 
 import database
+from utils.jwt import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/tasks")
-def create_task(task: TaskCreate, db=Depends(database.get_db)):
+def create_task(
+    task: TaskCreate,
+    db=Depends(database.get_db),
+    current_user=Depends(get_current_user),
+):
     new_task = TaskModel(
-        title=task.title, description=task.description, priority=task.priority
+        title=task.title,
+        description=task.description,
+        priority=task.priority,
+        user_id=current_user.id,
     )
     db.add(new_task)
     db.commit()
@@ -19,21 +27,33 @@ def create_task(task: TaskCreate, db=Depends(database.get_db)):
 
 
 @router.get("/tasks")
-def get_tasks(db=Depends(database.get_db)):
-    return db.query(TaskModel).all()
+def get_tasks(db=Depends(database.get_db), current_user=Depends(get_current_user)):
+    return db.query(TaskModel).filter(TaskModel.user_id == current_user.id).all()
 
 
 @router.get("/tasks/{task_id}")
-def get_task(task_id: int, db=Depends(database.get_db)):
-    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+def get_task(
+    task_id: int, db=Depends(database.get_db), current_user=Depends(get_current_user)
+):
+    db_task = (
+        db.query(TaskModel)
+        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
+        .first()
+    )
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return db_task
 
 
 @router.delete("/tasks/{task_id}")
-def delete_task(task_id: int, db=Depends(database.get_db)):
-    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+def delete_task(
+    task_id: int, db=Depends(database.get_db), current_user=Depends(get_current_user)
+):
+    db_task = (
+        db.query(TaskModel)
+        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
+        .first()
+    )
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     db.delete(db_task)
@@ -42,8 +62,17 @@ def delete_task(task_id: int, db=Depends(database.get_db)):
 
 
 @router.put("/tasks/{task_id}")
-def update_task(task_id: int, task_update: TaskUpdate, db=Depends(database.get_db)):
-    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+def update_task(
+    task_id: int,
+    task_update: TaskUpdate,
+    db=Depends(database.get_db),
+    current_user=Depends(get_current_user),
+):
+    db_task = (
+        db.query(TaskModel)
+        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
+        .first()
+    )
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
 

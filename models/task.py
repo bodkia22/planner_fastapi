@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func
 from database import Base
 
 
@@ -12,3 +12,4 @@ class Task(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     priority = Column(Integer, default=0)
+    user_id = Column(Integer, ForeignKey("users.id"))
