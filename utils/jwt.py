@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 import database
 from models.user import User as UserModel
 
-load_dotenv()
+load_dotenv(override=False)
 
 SECRET_KEY = getenv("SECRET_KEY")
 
