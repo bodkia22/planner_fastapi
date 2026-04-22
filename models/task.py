@@ -13,3 +13,4 @@ class Task(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     priority = Column(Integer, default=0)
     user_id = Column(Integer, ForeignKey("users.id"))
+    due_date = Column(DateTime, nullable=True)
