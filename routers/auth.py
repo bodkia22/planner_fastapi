@@ -3,7 +3,7 @@ import database
 from schemas.user import User, UserCreate, UserLogin
 from models.user import User as UserModel
 from passlib.context import CryptContext
-from utils.jwt import create_access_token
+from utils.jwt import create_access_token, get_current_user
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
@@ -45,3 +45,8 @@ def login(user: UserLogin, db=Depends(database.get_db)):
 
     token = create_access_token(data={"sub": db_user.email})
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/auth/me", response_model=User)
+def read_current_user(current_user=Depends(get_current_user)):
+    return current_user

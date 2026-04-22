@@ -84,6 +84,9 @@ def update_task(
     if task_update.is_done is not None:
         db_task.is_done = task_update.is_done
 
+    if "due_date" in task_update.model_fields_set:
+        db_task.due_date = task_update.due_date
+
     db.commit()
     db.refresh(db_task)
     return db_task

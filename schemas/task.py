@@ -11,6 +11,7 @@ class Task(BaseModel):
     is_done: bool = False
     created_at: datetime
     priority: int = 0
+    due_date: Optional[datetime] = None
 
 
 class TaskCreate(BaseModel):
@@ -24,3 +25,4 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     is_done: Optional[bool] = None
     priority: Optional[int] = None
+    due_date: Optional[datetime] = None

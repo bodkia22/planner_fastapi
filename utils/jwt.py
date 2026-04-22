@@ -34,7 +34,7 @@ def verify_access_token(token: str):
             raise ValueError("Token does not contain email")
         return email
     except JWTError:
-        raise ValueError("Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
