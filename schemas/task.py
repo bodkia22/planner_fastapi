@@ -17,7 +17,8 @@ class Task(BaseModel):
 class TaskCreate(BaseModel):
     title: str
     description: str
-    priority: Optional[int] = 0
+    priority: int = 0
+    due_date: datetime | None = None
 
 
 class TaskUpdate(BaseModel):

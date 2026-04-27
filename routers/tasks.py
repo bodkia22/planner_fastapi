@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas.task import Task, TaskCreate, TaskUpdate
-from models.task import Task as TaskModel
+from schemas.task import TaskCreate, TaskUpdate
 
 import database
 from utils.jwt import get_current_user
+
+from services import tasks as tasks_service
 
 router = APIRouter()
 
@@ -14,50 +15,39 @@ def create_task(
     db=Depends(database.get_db),
     current_user=Depends(get_current_user),
 ):
-    new_task = TaskModel(
+    new_task = tasks_service.create_task(
+        db=db,
+        user_id=current_user.id,
         title=task.title,
         description=task.description,
         priority=task.priority,
-        user_id=current_user.id,
+        due_date=task.due_date,
     )
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
     return new_task
 
 
 @router.get("/tasks")
 def get_tasks(db=Depends(database.get_db), current_user=Depends(get_current_user)):
-    return db.query(TaskModel).filter(TaskModel.user_id == current_user.id).all()
+    return tasks_service.list_tasks(db, current_user.id)
 
 
 @router.get("/tasks/{task_id}")
 def get_task(
     task_id: int, db=Depends(database.get_db), current_user=Depends(get_current_user)
 ):
-    db_task = (
-        db.query(TaskModel)
-        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
-        .first()
-    )
-    if db_task is None:
+    task = tasks_service.get_task(db, current_user.id, task_id)
+    if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return db_task
+    return task
 
 
 @router.delete("/tasks/{task_id}")
 def delete_task(
     task_id: int, db=Depends(database.get_db), current_user=Depends(get_current_user)
 ):
-    db_task = (
-        db.query(TaskModel)
-        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
-        .first()
-    )
-    if db_task is None:
+    deleted = tasks_service.delete_task(db, current_user.id, task_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Task not found")
-    db.delete(db_task)
-    db.commit()
     return {"detail": "Task deleted"}
 
 
@@ -68,25 +58,12 @@ def update_task(
     db=Depends(database.get_db),
     current_user=Depends(get_current_user),
 ):
-    db_task = (
-        db.query(TaskModel)
-        .filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id)
-        .first()
+    updated_task = tasks_service.update_task(
+        db=db,
+        user_id=current_user.id,
+        task_id=task_id,
+        fields=task_update.model_dump(exclude_unset=True),
     )
-    if db_task is None:
+    if updated_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-
-    # Update the task with the new values
-    if task_update.title is not None:
-        db_task.title = task_update.title
-    if task_update.description is not None:
-        db_task.description = task_update.description
-    if task_update.is_done is not None:
-        db_task.is_done = task_update.is_done
-
-    if "due_date" in task_update.model_fields_set:
-        db_task.due_date = task_update.due_date
-
-    db.commit()
-    db.refresh(db_task)
-    return db_task
+    return updated_task
