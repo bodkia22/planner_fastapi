@@ -2,13 +2,13 @@ from datetime import datetime
 import json
 from sqlalchemy.orm import Session
 from models.task import Task as TaskModel
+from services import tasks as tasks_service
 
 
 def execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) -> str:
     if tool_name == "get_user_tasks":
-        tasks = db.query(TaskModel).filter(TaskModel.user_id == user_id).all()
+        tasks = tasks_service.list_tasks(db, user_id)
 
-        # Серіалізуємо у JSON-сумісний список dict-ів
         result = [
             {
                 "id": t.id,
@@ -34,16 +34,14 @@ def execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) ->
         if not title or not title.strip():
             return json.dumps({"error": "Title is required and cannot be empty"})
 
-        new_task = TaskModel(
+        new_task = tasks_service.create_task(
+            db=db,
             user_id=user_id,
-            title=title,
-            description=description,
+            title=title.strip(),
+            description=description.strip() if description else None,
             priority=priority,
             due_date=due_date,
         )
-        db.add(new_task)
-        db.commit()
-        db.refresh(new_task)
 
         return json.dumps(
             {
@@ -63,18 +61,11 @@ def execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) ->
         if task_id is None:
             return json.dumps({"error": "Task ID is required for deletion"})
 
-        task = (
-            db.query(TaskModel)
-            .filter(TaskModel.id == task_id, TaskModel.user_id == user_id)
-            .first()
-        )
-        if not task:
+        is_deleted = tasks_service.delete_task(db, user_id, task_id)
+        if not is_deleted:
             return json.dumps(
                 {"error": f"No task found with ID {task_id} for this user"}
             )
-
-        db.delete(task)
-        db.commit()
 
         return json.dumps(
             {
@@ -89,33 +80,19 @@ def execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) ->
         if task_id is None:
             return json.dumps({"error": "Task ID is required for update"})
 
-        task = (
-            db.query(TaskModel)
-            .filter(TaskModel.id == task_id, TaskModel.user_id == user_id)
-            .first()
-        )
-        if not task:
-            return json.dumps(
-                {"error": f"No task found with ID {task_id} for this user"}
-            )
+        # Конвертуємо due_date з рядка в datetime ДО передачі в service
+        fields = dict(tool_input)  # копія, щоб не псувати оригінал
+        fields.pop("id", None)  # id не оновлюємо, тільки шукаємо
 
-        # Оновлюємо поля, якщо вони є у вхідних даних
-        if "title" in tool_input:
-            task.title = tool_input["title"]
-        if "description" in tool_input:
-            task.description = tool_input["description"]
-        if "priority" in tool_input:
-            task.priority = tool_input["priority"]
-        if "due_date" in tool_input:
-            due_date_str = tool_input.get("due_date")
-            task.due_date = (
+        if "due_date" in fields:
+            due_date_str = fields["due_date"]
+            fields["due_date"] = (
                 datetime.fromisoformat(due_date_str) if due_date_str else None
             )
-        if "is_done" in tool_input:
-            task.is_done = tool_input["is_done"]
 
-        db.commit()
-        db.refresh(task)
+        task = tasks_service.update_task(db, user_id, task_id, fields)
+        if not task:
+            return json.dumps({"error": f"No task found with ID {task_id}"})
 
         return json.dumps(
             {
@@ -124,7 +101,7 @@ def execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) ->
                 "description": task.description,
                 "is_done": task.is_done,
                 "priority": task.priority,
-                "due_date": task.due_date.isoformat() if task.due_date else None,  # type: ignore
+                "due_date": task.due_date.isoformat() if task.due_date else None,
                 "message": f"Task {task_id} updated",
             },
             default=str,
