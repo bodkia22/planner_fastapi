@@ -2,8 +2,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from os import getenv
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Cookie, Depends, HTTPException
 import database
 from models.user import User as UserModel
 
@@ -37,11 +36,14 @@ def verify_access_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+def get_current_user(
+    access_token: str | None = Cookie(default=None), db=Depends(database.get_db)
+):
 
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
-def get_current_user(token: str = Depends(oauth2_scheme), db=Depends(database.get_db)):
-    email = verify_access_token(token)
+    email = verify_access_token(access_token)
     user = db.query(UserModel).filter(UserModel.email == email).first()
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
