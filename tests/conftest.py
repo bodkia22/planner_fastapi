@@ -38,7 +38,7 @@ def client(db):
 
 
 @pytest.fixture
-def auth_token(client):
+def authenticated_client(client):
     client.post(
         "/auth/register",
         json={
@@ -47,7 +47,8 @@ def auth_token(client):
             "password": "testpassword",
         },
     )
-    response = client.post(
+
+    login_response = client.post(
         "/auth/login",
         json={
             "email": "test@test.com",
@@ -55,4 +56,6 @@ def auth_token(client):
         },
     )
 
-    return response.json()["access_token"]
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+
+    return client
