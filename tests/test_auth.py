@@ -69,9 +69,16 @@ def test_login(client):
             "password": "testpassword",
         },
     )
+    set_cookie_header = response.headers["set-cookie"]
+    header_lower = set_cookie_header.lower()
+
     assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
+    assert response.json()["message"] == "Login successful"
+
+    assert "httponly" in header_lower
+    assert "samesite=lax" in header_lower.lower()
+
+    assert "access_token" in response.cookies
 
 
 def test_login_invalid_credentials(client):
