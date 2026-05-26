@@ -1,17 +1,11 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from os import getenv
-from dotenv import load_dotenv
 from fastapi import Cookie, Depends, HTTPException
 import database
 from models.user import User as UserModel
+from config import settings
 
-load_dotenv(override=False)
-
-SECRET_KEY = getenv("SECRET_KEY")
-
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable is not set")
+SECRET_KEY = settings.secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
