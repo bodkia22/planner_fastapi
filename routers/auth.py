@@ -5,6 +5,7 @@ from models.user import User as UserModel
 from passlib.context import CryptContext
 from utils.jwt import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_user
 from fastapi import Response
+from config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
@@ -51,8 +52,8 @@ def login(user: UserLogin, response: Response, db=Depends(database.get_db)):
         value=token,
         path="/",
         httponly=True,
-        secure=False,  # TODO: на проді — True (через env, бо локально HTTP)
-        samesite="lax",
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     return {"message": "Login successful"}
@@ -68,8 +69,8 @@ def logout(response: Response):
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
         path="/",
     )
     return {"message": "Logout successful"}
