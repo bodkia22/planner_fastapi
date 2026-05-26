@@ -4,12 +4,13 @@ from routers.tasks import router
 from routers.auth import router as auth_router
 from routers.assistant import router as assistance_router
 from routers.conversation import router as conversation_router
+from config import settings
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
