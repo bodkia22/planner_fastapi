@@ -13,6 +13,21 @@
 
 > ℹ️ The backend runs on Railway — the first request after a period of inactivity may take a few seconds to wake up.
 
+## 🎬 Demo
+
+Tell the assistant in plain language — it figures out the dates, priorities and where each task belongs:
+
+![AI assistant parsing a natural-language request into structured tasks](https://github.com/user-attachments/assets/319cb91b-eaa1-4061-afd5-ab163a7e7290)
+
+Dated tasks land on the right days with the correct priority:
+
+![Weekend tasks created on the board](https://github.com/user-attachments/assets/1a5cd078-6a17-4195-8f41-6fbaaad0feac)
+
+…and tasks without a date go to a separate To-Do list:
+
+![Undated task in the To-Do column](https://github.com/user-attachments/assets/694384a1-5998-4a62-a6ef-ee4c7fd4230c)
+
+
 <!-- TODO: вставити GIF роботи AI-асистента сюди. Це найважливіша частина README. -->
 <!-- Приклад: ![AI Assistant demo](docs/demo.gif) -->
 
