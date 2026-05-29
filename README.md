@@ -1,7 +1,7 @@
  # 🗓️ Weekly Planner — AI-Powered Task Manager (Backend)
 
 > A full-stack task manager with an **AI agent** that manages your tasks through natural language.
-> Tell it *"add a dentist appointment next Tuesday and remind me to call mom tomorrow"* — the agent decides which actions to run, creates the tasks, and replies.
+> Tell it *"add a dentist appointment next Tuesday and a task to call mom tomorrow"* — the agent decides which actions to run, creates the tasks, and replies.
 
 <p align="left">
   <a href="https://weekly-planner-bb.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-Try_it-22c55e?style=for-the-badge" alt="Live Demo"></a>
@@ -26,10 +26,6 @@ Dated tasks land on the right days with the correct priority:
 …and tasks without a date go to a separate To-Do list:
 
 ![Undated task in the To-Do column](https://github.com/user-attachments/assets/694384a1-5998-4a62-a6ef-ee4c7fd4230c)
-
-
-<!-- TODO: вставити GIF роботи AI-асистента сюди. Це найважливіша частина README. -->
-<!-- Приклад: ![AI Assistant demo](docs/demo.gif) -->
 
 ---
 
@@ -146,7 +142,7 @@ Tests run against an isolated SQLite database with fixtures for authenticated re
 |--------|---------------------|--------------------------------------|------|
 | POST   | `/auth/register`    | Register a new user                  | ❌   |
 | POST   | `/auth/login`       | Login, sets httpOnly cookie          | ❌   |
-| POST   | `/auth/logout`      | Clear auth cookie                    | ✅   |
+| POST   | `/auth/logout`      | Clear auth cookie                    | ❌   |
 | GET    | `/auth/me`          | Current user info                    | ✅   |
 | GET    | `/tasks`            | List user's tasks                    | ✅   |
 | POST   | `/tasks`            | Create a task                        | ✅   |
